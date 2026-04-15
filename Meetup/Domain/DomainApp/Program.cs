@@ -1,5 +1,4 @@
 ﻿using Meetup.Domain.Entities;
-using Meetup.Domain.Entities;
 using Meetup.Domain.Repositories;
 using Meetup.ValueObjects;
 
