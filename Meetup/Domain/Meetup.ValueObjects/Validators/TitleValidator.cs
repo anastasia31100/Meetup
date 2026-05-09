@@ -1,21 +1,17 @@
 ﻿using Meetup.ValueObjects.Base;
+using Meetup.ValueObjects.Exceptions;
 
 namespace Meetup.ValueObjects.Validators;
-
-/// <summary>
-/// Validator for event title.
-/// </summary>
 public class TitleValidator : IValidator<string>
 {
+    public static int MAX_LENGTH => 200;
+
     public void Validate(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new ArgumentException("Title cannot be empty", nameof(value));
+            throw new ArgumentNullOrWhiteSpaceException(nameof(value));
 
-        if (value.Length < 3)
-            throw new ArgumentException("Title must be at least 3 characters", nameof(value));
-
-        if (value.Length > 200)
-            throw new ArgumentException("Title cannot exceed 200 characters", nameof(value));
+        if (value.Length > MAX_LENGTH)
+            throw new ArgumentLongValueException(nameof(value), value, MAX_LENGTH);
     }
 }

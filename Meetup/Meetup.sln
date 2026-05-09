@@ -8,7 +8,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Meetup.Domain", "Domain\Mee
 		{8C02D2E6-E5EE-4938-BEC1-3700F8619CC9} = {8C02D2E6-E5EE-4938-BEC1-3700F8619CC9}
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Meetup.Domain.Abstractions", "Domain\Meetup.Domain.Abstractions\Meetup.Domain.Abstractions.csproj", "{82CFF024-179A-4608-B3CD-6ADC450CB520}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Meetup.Domain.Repositories.Abstractions", "Domain\Meetup.Domain.Abstractions\Meetup.Domain.Repositories.Abstractions.csproj", "{82CFF024-179A-4608-B3CD-6ADC450CB520}"
 	ProjectSection(ProjectDependencies) = postProject
 		{8C02D2E6-E5EE-4938-BEC1-3700F8619CC9} = {8C02D2E6-E5EE-4938-BEC1-3700F8619CC9}
 	EndProjectSection

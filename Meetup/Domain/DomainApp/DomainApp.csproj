@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Meetup.Domain.Abstractions\Meetup.Domain.Abstractions.csproj" />
+    <ProjectReference Include="..\Meetup.Domain.Abstractions\Meetup.Domain.Repositories.Abstractions.csproj" />
     <ProjectReference Include="..\Meetup.Domain\Meetup.Domain.csproj" />
     <ProjectReference Include="..\Meetup.ValueObjects\Meetup.ValueObjects.csproj" />
   </ItemGroup>

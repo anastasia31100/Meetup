@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Meetup.ValueObjects\Meetup.ValueObjects.csproj" />
+    <ProjectReference Include="..\Meetup.Domain\Meetup.Domain.csproj" />
   </ItemGroup>
 
 </Project>

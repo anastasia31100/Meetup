@@ -1,21 +1,17 @@
 ﻿using Meetup.ValueObjects.Base;
-
+using Meetup.ValueObjects.Exceptions;
 namespace Meetup.ValueObjects.Validators;
 
-/// <summary>
-/// Validator for event type name.
-/// </summary>
 public class EventTypeNameValidator : IValidator<string>
 {
+    public static int MAX_LENGTH => 100;
+
     public void Validate(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new ArgumentException("Event type name cannot be empty", nameof(value));
+            throw new ArgumentNullOrWhiteSpaceException(nameof(value));
 
-        if (value.Length < 2)
-            throw new ArgumentException("Event type name must be at least 2 characters", nameof(value));
-
-        if (value.Length > 100)
-            throw new ArgumentException("Event type name cannot exceed 100 characters", nameof(value));
+        if (value.Length > MAX_LENGTH)
+            throw new ArgumentLongValueException(nameof(value), value, MAX_LENGTH);
     }
 }

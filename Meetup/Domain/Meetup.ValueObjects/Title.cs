@@ -3,4 +3,4 @@ using Meetup.ValueObjects.Validators;
 
 namespace Meetup.ValueObjects;
 
-public class CompanyName(string? name) : ValueObject<string?>(new CompanyNameValidator(), name);
+public class Title(string title) : ValueObject<string>(new TitleValidator(), title);

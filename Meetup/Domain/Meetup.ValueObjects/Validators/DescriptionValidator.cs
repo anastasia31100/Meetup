@@ -1,15 +1,14 @@
 ﻿using Meetup.ValueObjects.Base;
+using Meetup.ValueObjects.Exceptions;
 
 namespace Meetup.ValueObjects.Validators;
-
-/// <summary>
-/// Validator for event description.
-/// </summary>
-public class DescriptionValidator : IValidator<string?>
+public class DescriptionValidator : IValidator<string>
 {
-    public void Validate(string? value)
+    public static int MAX_LENGTH => 500;
+
+    public void Validate(string value)
     {
-        if (!string.IsNullOrWhiteSpace(value) && value.Length > 4000)
-            throw new ArgumentException("Description cannot exceed 4000 characters", nameof(value));
+        if (value != null && value.Length > MAX_LENGTH)
+            throw new ArgumentLongValueException(nameof(value), value, MAX_LENGTH);
     }
 }
