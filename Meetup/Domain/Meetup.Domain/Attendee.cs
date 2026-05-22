@@ -7,10 +7,10 @@ namespace Meetup.Domain;
 
 public class Attendee : Entity<Guid>
 {
-    private readonly List<Registration> _registrations = [];
+    private readonly ICollection<Registration> _registrations = new List<Registration>();
 
     public Username Username { get; private set; }
-    public IReadOnlyCollection<Registration> Registrations => _registrations.AsReadOnly();
+    public IReadOnlyCollection<Registration> Registrations => _registrations.ToList().AsReadOnly();
     public IReadOnlyCollection<Registration> ActiveRegistrations =>
         _registrations.Where(r => !r.IsCancelled && !r.Event.IsCancelled && !r.Event.Started()).ToList().AsReadOnly();
     public IReadOnlyCollection<Registration> History =>
@@ -22,7 +22,10 @@ public class Attendee : Entity<Guid>
     {
         Username = username ?? throw new ArgumentNullValueException(nameof(username));
     }
-
+    // Публичный конструктор для создания нового участника
+    public Attendee(Username username) : this(Guid.NewGuid(), username)
+    {
+    }
     public Registration RegisterForEvent(Event eventToRegister)
     {
         if (eventToRegister == null) throw new ArgumentNullValueException(nameof(eventToRegister));
@@ -46,8 +49,8 @@ public class Attendee : Entity<Guid>
 
         if (eventToCancel.Started())
             throw new EventAlreadyStartedException(eventToCancel);
-
-        return registration.Cancel();
+        // Передаём this в метод Cancel, чтобы проверить, что отменяет тот же участник
+        return registration.Cancel(this);
     }
 
     public bool ChangeUsername(Username newUsername)

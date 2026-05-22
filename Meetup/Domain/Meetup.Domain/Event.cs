@@ -1,5 +1,4 @@
-﻿
-using Meetup.Domain.Base;
+﻿using Meetup.Domain.Base;
 using Meetup.Domain.Exceptions;
 using Meetup.ValueObjects;
 
@@ -7,7 +6,7 @@ namespace Meetup.Domain;
 
 public class Event : Entity<Guid>
 {
-    private readonly List<Registration> _registrations = [];
+    private readonly ICollection<Registration> _registrations = new List<Registration>();
 
     public Organizer Organizer { get; private set; }
     public EventType EventType { get; private set; }
@@ -15,18 +14,19 @@ public class Event : Entity<Guid>
     public EventDescription Description { get; private set; }
     public DateTime EventDate { get; private set; }
     public Location Location { get; private set; }
-    public int MaxAttendees { get; private set; }
-    public int CurrentAttendees { get; private set; }
+    public SeatCount MaxAttendees { get; private set; } // теперь Value Object
+    public SeatCount CurrentAttendees { get; private set; } // теперь Value Object
     public bool IsActive { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public bool IsCancelled { get; private set; }
-    public IReadOnlyCollection<Registration> Registrations => _registrations.AsReadOnly();
+
+    public IReadOnlyCollection<Registration> Registrations => _registrations.ToList().AsReadOnly();
 
     protected Event() { }
 
-    public Event(Guid id, Organizer organizer, EventType eventType, Title title,
-        EventDescription description, DateTime eventDate, Location location,
-        int maxAttendees) : base(id)
+    protected Event(Guid id, Organizer organizer, EventType eventType, Title title,
+        EventDescription description, DateTime eventDate, Location location, SeatCount maxAttendees)
+        : base(id)
     {
         Organizer = organizer ?? throw new ArgumentNullValueException(nameof(organizer));
         EventType = eventType ?? throw new ArgumentNullValueException(nameof(eventType));
@@ -34,15 +34,22 @@ public class Event : Entity<Guid>
         Description = description;
         EventDate = eventDate;
         Location = location ?? throw new ArgumentNullValueException(nameof(location));
+        MaxAttendees = maxAttendees ?? throw new ArgumentNullValueException(nameof(maxAttendees));
 
-        if (maxAttendees < 1)
-            throw new InvalidMaxAttendeesException(maxAttendees);
+        if (MaxAttendees.Value < 1)
+            throw new InvalidMaxAttendeesException(MaxAttendees.Value);
 
-        MaxAttendees = maxAttendees;
-        CurrentAttendees = 0;
+        CurrentAttendees = new SeatCount(0);
         IsActive = true;
         CreatedAt = DateTime.UtcNow;
         IsCancelled = false;
+    }
+
+    // Публичный конструктор для удобства (с int для maxAttendees)
+    public Event(Organizer organizer, EventType eventType, Title title,
+        EventDescription description, DateTime eventDate, Location location, int maxAttendees)
+        : this(Guid.NewGuid(), organizer, eventType, title, description, eventDate, location, new SeatCount(maxAttendees))
+    {
     }
 
     public Registration RegisterAttendee(Attendee attendee)
@@ -58,31 +65,45 @@ public class Event : Entity<Guid>
         if (CurrentAttendees >= MaxAttendees)
             throw new EventFullException(this);
 
-        var registration = new Registration(Guid.NewGuid(), this, attendee);
+        var registration = new Registration(this, attendee); // конструктор Registration сгенерирует Guid
         _registrations.Add(registration);
-        CurrentAttendees++;
-
+        CurrentAttendees = new SeatCount(CurrentAttendees.Value + 1);
         return registration;
     }
 
-    internal bool UpdateDetails(Title newTitle, EventDescription newDescription,
+    // Метод для отмены регистрации с проверкой, что отменяет тот же участник
+    internal void RemoveRegistration(Registration registration, Attendee requester)
+    {
+        if (registration.Attendee != requester)
+            throw new InvalidOperationException("Только участник может отменить свою регистрацию");
+
+        if (_registrations.Contains(registration) && !registration.IsCancelled)
+        {
+            CurrentAttendees = new SeatCount(CurrentAttendees.Value - 1);
+        }
+    }
+
+    internal bool UpdateDetails(Organizer requester, Title newTitle, EventDescription newDescription,
         DateTime newEventDate, Location newLocation, int newMaxAttendees)
     {
+        if (requester != Organizer)
+            throw new AnotherOrganizerEditEventException(this, requester);
+
         bool updated = false;
 
-        if (!Title.Equals(newTitle))
+        if (Title != newTitle) // используем оператор !=
         {
             Title = newTitle;
             updated = true;
         }
 
-        if (!Equals(Description, newDescription))
+        if (Description != newDescription) // оператор !=
         {
             Description = newDescription;
             updated = true;
         }
 
-        if (!EventDate.Equals(newEventDate))
+        if (EventDate != newEventDate) // DateTime также поддерживает !=
         {
             if (newEventDate < DateTime.UtcNow)
                 throw new InvalidEventDateException(newEventDate);
@@ -90,25 +111,29 @@ public class Event : Entity<Guid>
             updated = true;
         }
 
-        if (!Location.Equals(newLocation))
+        if (Location != newLocation) // оператор !=
         {
             Location = newLocation;
             updated = true;
         }
 
-        if (MaxAttendees != newMaxAttendees)
+        var newMax = new SeatCount(newMaxAttendees);
+        if (MaxAttendees != newMax)
         {
-            if (newMaxAttendees < CurrentAttendees)
-                throw new InvalidMaxAttendeesException(newMaxAttendees, CurrentAttendees);
-            MaxAttendees = newMaxAttendees;
+            if (newMax < CurrentAttendees)
+                throw new InvalidMaxAttendeesException(newMax.Value, CurrentAttendees.Value);
+            MaxAttendees = newMax;
             updated = true;
         }
 
         return updated;
     }
 
-    internal void Cancel()
+    internal void Cancel(Organizer requester)
     {
+        if (requester != Organizer)
+            throw new AnotherOrganizerCancelEventException(this, requester);
+
         if (Started())
             throw new EventAlreadyStartedException(this);
 
@@ -117,30 +142,12 @@ public class Event : Entity<Guid>
 
         foreach (var registration in _registrations.Where(r => !r.IsCancelled))
         {
-            registration.Cancel();
+            registration.Cancel(requester); 
         }
     }
-
-    internal void RemoveRegistration(Registration registration)
+    public int AvailableSeats()
     {
-        if (_registrations.Contains(registration) && !registration.IsCancelled)
-        {
-            CurrentAttendees--;
-        }
+        return MaxAttendees.Value - CurrentAttendees.Value;
     }
-
     public bool Started() => EventDate < DateTime.UtcNow;
-
-    public int AvailableSeats() => MaxAttendees - CurrentAttendees;
-
-    public bool ChangeEventType(EventType newEventType)
-    {
-        if (newEventType == null) throw new ArgumentNullValueException(nameof(newEventType));
-        if (Started()) throw new EventAlreadyStartedException(this);
-
-        if (EventType.Id == newEventType.Id) return false;
-
-        EventType = newEventType;
-        return true;
-    }
 }

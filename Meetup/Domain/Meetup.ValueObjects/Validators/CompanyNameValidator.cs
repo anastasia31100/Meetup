@@ -7,9 +7,16 @@ public class CompanyNameValidator : IValidator<string>
 {
     public static int MAX_LENGTH => 200;
 
-    public void Validate(string value)
+    public void Validate(string? value)
     {
-        if (value != null && value.Length > MAX_LENGTH)
+        // null разрешён (компания может не указываться)
+        if (value == null)
+            return;
+
+        if (string.IsNullOrWhiteSpace(value))
+            throw new ArgumentNullOrWhiteSpaceException(nameof(value));
+
+        if (value.Length > MAX_LENGTH)
             throw new ArgumentLongValueException(nameof(value), value, MAX_LENGTH);
     }
 }

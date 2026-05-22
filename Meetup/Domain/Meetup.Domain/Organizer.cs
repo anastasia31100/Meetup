@@ -5,34 +5,37 @@ namespace Meetup.Domain;
 
 public class Organizer : Entity<Guid>
 {
-    private readonly List<Event> _events = [];
+
+    private readonly ICollection<Event> _events = new List<Event>();
 
     public Username Username { get; private set; }
-    public string EntityType { get; private set; }
+    public EntityType EntityType { get; private set; } // теперь Value Object
     public CompanyName? CompanyName { get; private set; }
-    public IReadOnlyCollection<Event> Events => _events.AsReadOnly();
+    public IReadOnlyCollection<Event> Events => _events.ToList().AsReadOnly();
 
     protected Organizer() { }
 
-    public Organizer(Guid id, Username username, string entityType, CompanyName? companyName = null) : base(id)
+    protected Organizer(Guid id, Username username, EntityType entityType, CompanyName? companyName = null) : base(id)
     {
         Username = username ?? throw new ArgumentNullValueException(nameof(username));
+        EntityType = entityType ?? throw new ArgumentNullValueException(nameof(entityType));
 
-        if (string.IsNullOrWhiteSpace(entityType))
-            throw new ArgumentNullValueException(nameof(entityType));
+        if (entityType == EntityType.Company && companyName == null)
+            throw new ArgumentNullValueException(nameof(companyName), "Для компании необходимо указать название");
 
-        if (entityType != "individual" && entityType != "company")
-            throw new InvalidEntityTypeException(entityType);
+        CompanyName = companyName;
+    }
 
-        EntityType = entityType;
-        CompanyName = entityType == "company" ? companyName : null;
+    // Публичный конструктор
+    public Organizer(Username username, EntityType entityType, CompanyName? companyName = null)
+        : this(Guid.NewGuid(), username, entityType, companyName)
+    {
     }
 
     public Event CreateEvent(Title title, EventDescription description, DateTime eventDate,
         Location location, int maxAttendees, EventType eventType)
     {
-        var newEvent = new Event(Guid.NewGuid(), this, eventType, title, description,
-            eventDate, location, maxAttendees);
+        var newEvent = new Event(this, eventType, title, description, eventDate, location, maxAttendees);
         _events.Add(newEvent);
         return newEvent;
     }
@@ -49,7 +52,8 @@ public class Organizer : Entity<Guid>
         if (eventToEdit.Started())
             throw new EventAlreadyStartedException(eventToEdit);
 
-        return eventToEdit.UpdateDetails(newTitle, newDescription, newEventDate, newLocation, newMaxAttendees);
+        // Передаём this для проверки в Event
+        return eventToEdit.UpdateDetails(this, newTitle, newDescription, newEventDate, newLocation, newMaxAttendees);
     }
 
     public void CancelEvent(Event eventToCancel)
@@ -63,13 +67,13 @@ public class Organizer : Entity<Guid>
         if (eventToCancel.Started())
             throw new EventAlreadyStartedException(eventToCancel);
 
-        eventToCancel.Cancel();
+        eventToCancel.Cancel(this); // передаём this
     }
 
     public bool ChangeUsername(Username newUsername)
     {
         if (newUsername == null) throw new ArgumentNullValueException(nameof(newUsername));
-        if (Username.Equals(newUsername)) return false;
+        if (Username == newUsername) return false;
         Username = newUsername;
         return true;
     }

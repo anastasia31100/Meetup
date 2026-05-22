@@ -97,8 +97,8 @@ internal class Program
     static Organizer CreateOrganizer()
     {
         var username = new Username("event_organizer");
-        var organizer = new Organizer(Guid.NewGuid(), username, "individual");
-        Console.WriteLine($" Создан организатор: {organizer.Username.Value}");
+        var organizer = new Organizer(username, EntityType.Individual); // ← без Guid
+        Console.WriteLine($"Создан организатор: {organizer.Username.Value}");
         return organizer;
     }
 
@@ -115,23 +115,23 @@ internal class Program
     {
         var eventTypes = new List<EventType>();
 
-        var conference = new EventType(Guid.NewGuid(),
+        // Используем публичный конструктор без Guid
+        var conference = new EventType(
             new EventTypeName("Conference"),
             new EventDescription("Professional conferences and summits"));
         eventTypes.Add(conference);
-        Console.WriteLine($" Создан тип мероприятия: {conference.Name.Value}");
+        Console.WriteLine($"Создан тип мероприятия: {conference.Name.Value}");
 
-        var workshop = new EventType(Guid.NewGuid(),
+        var workshop = new EventType(
             new EventTypeName("Workshop"),
             new EventDescription("Hands-on workshops and training"));
         eventTypes.Add(workshop);
-        Console.WriteLine($" Создан тип мероприятия: {workshop.Name.Value}");
-
-        var meetup = new EventType(Guid.NewGuid(),
-            new EventTypeName("Meetup"),
-            new EventDescription("Casual meetups and networking"));
+        Console.WriteLine($"Создан тип мероприятия: {workshop.Name.Value}");
+        var meetup = new EventType(
+       new EventTypeName("Meetup"),
+       new EventDescription("Casual meetups and networking"));
         eventTypes.Add(meetup);
-        Console.WriteLine($" Создан тип мероприятия: {meetup.Name.Value}");
+        Console.WriteLine($"Создан тип мероприятия: {meetup.Name.Value}");
 
         Console.WriteLine();
         return eventTypes;
@@ -224,7 +224,7 @@ internal class Program
 
         try
         {
-            var anotherOrganizer = new Organizer(Guid.NewGuid(), new Username("fake_organizer"), "individual");
+            var anotherOrganizer = new Organizer( new Username("fake_organizer"), EntityType.Individual);
             anotherOrganizer.EditEvent(eventObj, newTitle, eventObj.Description,
                 eventObj.EventDate, eventObj.Location, newMaxAttendees);
             Console.WriteLine(" Должно было выбросить исключение");
@@ -294,7 +294,7 @@ internal class Program
                 DateTime.UtcNow.AddDays(-1),
                 new Location("Somewhere"),
                 10,
-                new EventType(Guid.NewGuid(), new EventTypeName("Test"))
+               new EventType(new EventTypeName("Test"))
             );
 
             attendee.RegisterForEvent(pastEvent);
@@ -313,7 +313,7 @@ internal class Program
                 DateTime.UtcNow.AddDays(10),
                 new Location("Somewhere"),
                 1,
-                new EventType(Guid.NewGuid(), new EventTypeName("Test"))
+                new EventType(new EventTypeName("Test"))
             );
 
             var attendee1 = new Attendee(Guid.NewGuid(), new Username("user1"));
