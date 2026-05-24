@@ -1,14 +1,14 @@
-﻿using Meetup.ValueObjects.Base;
-using Meetup.ValueObjects.Validators;
+﻿using Meetup.ValueObjects.Validators;
+using Meetup.ValueObjects.Base;
 
 namespace Meetup.ValueObjects;
 
-/// <summary>
-/// Represents entity type (individual, company, sole_proprietor).
-/// </summary>
 public class EntityType : ValueObject<string>
 {
-    protected EntityType() : base(new EntityTypeValidator(), default(string)) { }
+    public static readonly EntityType Individual = new("individual");
+    public static readonly EntityType Company = new("company");
 
-    public EntityType(string type) : base(new EntityTypeValidator(), type) { }
+    public EntityType(string value) : base(new EntityTypeValidator(), value)
+    {
+    }
 }

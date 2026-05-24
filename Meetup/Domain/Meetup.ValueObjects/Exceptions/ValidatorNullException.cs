@@ -1,6 +1,7 @@
-﻿namespace Meetup.ValueObjects.Exceptions;
+﻿
+namespace Meetup.ValueObjects.Exceptions;
 
-public class ValidatorNullException : ArgumentNullException
+public class ArgumentNullValueException(string paramName)
+    : ArgumentNullException(paramName, $"Параметр \"{paramName}\" не может быть null.")
 {
-    public ValidatorNullException(string paramName) : base(paramName) { }
 }

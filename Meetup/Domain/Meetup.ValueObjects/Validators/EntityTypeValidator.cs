@@ -1,20 +1,19 @@
-﻿using Meetup.ValueObjects.Base;
+﻿
+using Meetup.ValueObjects.Base;
+using Meetup.ValueObjects.Exceptions;
 
 namespace Meetup.ValueObjects.Validators;
 
-/// <summary>
-/// Validator for entity type (individual, company, sole_proprietor).
-/// </summary>
 public class EntityTypeValidator : IValidator<string>
 {
-    private static readonly string[] ValidTypes = { "individual", "company", "sole_proprietor" };
+    private static readonly HashSet<string> AllowedValues = new() { "individual", "company" };
 
     public void Validate(string value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            throw new ArgumentException("Entity type cannot be empty", nameof(value));
+            throw new ArgumentNullOrWhiteSpaceException(nameof(value));
 
-        if (!ValidTypes.Contains(value.ToLower()))
-            throw new ArgumentException($"Entity type must be one of: {string.Join(", ", ValidTypes)}", nameof(value));
+        if (!AllowedValues.Contains(value))
+            throw new ArgumentException($"Недопустимый тип организатора: {value}. Допустимые: individual, company");
     }
 }
