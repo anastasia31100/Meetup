@@ -1,0 +1,6 @@
+@Meetup.WebHost_HostAddress = http://localhost:5211
+
+GET {{Meetup.WebHost_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
