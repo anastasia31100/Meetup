@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Meetup.Domain.Repositories.Abstractions\Meetup.Domain.Repositories.Abstractions.csproj" />
+    <ProjectReference Include="..\Meetup.Domain\Meetup.Domain.csproj" />
+    <ProjectReference Include="..\Meetup.ValueObjects\Meetup.ValueObjects.csproj" />
+  </ItemGroup>
+
+</Project>
